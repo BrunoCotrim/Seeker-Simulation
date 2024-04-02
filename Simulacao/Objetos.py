@@ -1,22 +1,19 @@
 #from typing import Any
 import pygame
-import sys
 import random
+
 from Utilidades import *
-
-from pygame.sprite import Group
-
 from Constantes import *
 
-
 from NeuralNetwork import NN
-from Reproducao import reproduzir
+
 
 
 # Inicialização do Pygame
 pygame.init()
 
 SEEKERS = pygame.sprite.Group()
+HUNTERS = pygame.sprite.Group()
 COMIDA = pygame.sprite.Group()
 
 class Seeker(pygame.sprite.Sprite):
@@ -24,7 +21,7 @@ class Seeker(pygame.sprite.Sprite):
     seekercount = 0
     live = []
 
-    def __init__(self, x, y, cor, scale = 5, cerebro = 0, *groups: SEEKERS) -> None:
+    def __init__(self, x, y, cor, scale = 5, tipo = 2, cerebro = 0, *groups) -> None:
         super().__init__(groups)
         #Variaveis principais
         self.scale = scale
@@ -35,12 +32,11 @@ class Seeker(pygame.sprite.Sprite):
         
         self.cerebro = cerebro
         self.visao = []
-        self.raio_visao = 70
+        self.raio_visao = RAIO_VISAO
         self.estomago = 0
-        self.consumido = 0
+        self.consumido = 0 # Variavel para analise
         self.energia = ENERGIA_MAXIMA
-        
-
+        self.tipo = tipo
         
         self.cor1 = cor # Cor base
         self.cor2 = cor # Cor do núcleo
@@ -86,7 +82,7 @@ class Seeker(pygame.sprite.Sprite):
         self.y += math.cos(math.radians(self.angle)) * self.vel * movimento
               
     def girar(self,angulo):
-        self.angle += angulo
+        self.angle += angulo * self.vel_giro
         self.energia -= angulo/5 # Consome 1/4 da energia aplicada
 
     def ouvir_comandos(self,keys):
@@ -118,7 +114,29 @@ class Seeker(pygame.sprite.Sprite):
                 self.visao.append(distancia)
                 self.visao.append(angle)
         
-    def update(self,tela, cor):
+        for seeker in SEEKERS:
+            distx = self.rect.centerx - seeker.rect.centerx
+            disty = self.rect.centery - seeker.rect.centery
+            distancia = hipotenusa(distx, disty)
+            angle = angulo(distx, disty)
+
+            if distancia <= self.raio_visao:
+                self.visao.append(2)
+                self.visao.append(distancia)
+                self.visao.append(angle)
+        
+        for hunter in HUNTERS:
+            distx = self.rect.centerx - hunter.rect.centerx
+            disty = self.rect.centery - hunter.rect.centery
+            distancia = hipotenusa(distx, disty)
+            angle = angulo(distx, disty)
+            
+            if distancia <= self.raio_visao:
+                self.visao.append(3)
+                self.visao.append(distancia)
+                self.visao.append(angle)
+        
+    def update(self,tela, cor = MAGENTA):
         
         colisao = pygame.sprite.spritecollide(self, COMIDA, False)
         #---- Tratar colisao ----
@@ -157,14 +175,6 @@ class Seeker(pygame.sprite.Sprite):
 
     def auto_pilot(self):
         if self.autonomia:
-#            if self.current_move == 0:
-#                self.turn = random.randint(-6,6)
-#                self.current_move += random.randint(5,60)
-#                
-#            elif self.current_move > 0:
-#                self.girar(self.turn)
-#                self.current_move -=1
-            #self.resposta = self.cerebro.output(softmax=True).index(1)
             self.procurar()
             self.cerebro(self.organizar_dados(self.visao))
             self.resposta = self.cerebro.output(softmax=True) #self.cerebro.output(softmax=True)
@@ -327,3 +337,4 @@ if __name__ == "__main__":
         # Frame rate
         #clock.tick(frameseg)
 """
+

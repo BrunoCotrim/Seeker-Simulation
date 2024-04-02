@@ -1,44 +1,35 @@
-#import pygame
-#import neat
-#import sys
-#from Constantes import *
 from Objetos import *
-#from NeuralNetwork import NN
-#from Reproducao import reproduzir
-
-#Inicialização
-#pygame.init()
+import sys
+from Reproducao import reproduzir
 
 JANELA = pygame.display.set_mode((WN_WIDTH,WN_HEIGHT))
-
-
-#Relógio
 RELOGIO = pygame.time.Clock()
-frameseg = 2200
-ROUND = 1
-MAX_ROUND = 1000
-TAM_POP = 20
-Food = 50
-MIN_FOOD = 15
-ENERGIA_MAXIMA = 50
-
-
+frameseg = 1200
 POPULACAO = []
-for i in range(TAM_POP):
-    individuo = Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA, SEEKERS) 
+
+
+
+
+
+# Gerando Perseguidores
+for i in range(POP_INICIAL_SEEKER):
+    individuo = Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA,2,0,SEEKERS) 
     individuo.gerar_rede_neural(sensores = 32, prim_geracao = True, max_conexoes_extra = 30)
     POPULACAO.append(individuo)
 
-while ROUND < MAX_ROUND:
-    if ROUND % 20 == 0:
-        frameseg /=2
+# Gerando Caçadores
+for i in range(POP_INICIAL_HUNTER):
+    individuo = Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), VERMELHO, ESCALA,3,0,HUNTERS) 
+    individuo.gerar_rede_neural(sensores = 32, prim_geracao = True, max_conexoes_extra = 30)
+    POPULACAO.append(individuo) 
 
+
+while ROUND < MAX_ROUND:
 
     pygame.display.set_caption(f"Learning Seekers: {ROUND}")
     TIMER = 1200
-    player = Seeker.live[0]
 
-    for _ in range(Food):
+    for _ in range(MAX_FOOD):
         Pellet(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT),BRANCO,ESCALA,COMIDA) 
 
     #Loop
@@ -78,46 +69,33 @@ while ROUND < MAX_ROUND:
         # Preenche a janela com cor
         JANELA.fill(PRETO)  
 
-        #Receber comandos
-        player.ouvir_comandos(teclas)
-
-
         # Desenhar tudo ---------------------------
-        
-        pygame.draw.line(JANELA,BRANCO,(WN_WIDTH//2, WN_HEIGHT//2),(player.x,player.y),1)
 
         for i in COMIDA:
             i.desenhar(JANELA)
             i.update()
-        for i in Seeker.live:
-            i.update(JANELA, VERMELHO)
+        for i in SEEKERS:#Seeker.live:
+            i.update(JANELA)
 
-
-
-        pygame.display.flip()  #Atualiza o display inteiro
-        
-        #pygame.display.update(player.rect)   #Atualiza apenas os itens
 
         # Atualiza a tela
-        pygame.display.update()  
+        pygame.display.flip()  #Atualiza o display inteiro
         RELOGIO.tick(frameseg)  # Limita a taxa de quadros
 
     # --- Fim da Geração e Avaliação ---
     ROUND += 1
     avaliacao = quick_sort_key([[i, i.estomago] for i in POPULACAO], 1)
-    Seeker.live = []
-    POPULACAO = [Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA, reproduzir(avaliacao[0][0].cerebro, avaliacao[random.randint(0,3)][0].cerebro), SEEKERS) for i in range (TAM_POP)]
     COMIDA.empty()
+    SEEKERS.empty()
+    HUNTERS.empty()
+    POPULACAO = [Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA, 2, reproduzir(avaliacao[0][0].cerebro, avaliacao[random.randint(0,3)][0].cerebro), SEEKERS) for i in range (POP_INICIAL_SEEKER)]
+
 
     
-
-        
-
 
 # Finalização do Pygame
 pygame.quit()
 sys.exit()
-
 
 
 
