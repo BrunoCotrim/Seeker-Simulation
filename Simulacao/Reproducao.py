@@ -177,7 +177,113 @@ def reproduzir(rede_neural_1, rede_neural_2, fator_dominancia = 0.8, taxa_mutaç
     return prole
 
 
+def reproduzir_solo(rede_neural, taxa_mutacao = 0.2):
+    alfa = rede_neural
+    rede_a = [i.ID for i in alfa.layers["ocultas"]]
+    rede_p = rede_a
 
+
+    prole = NN(len(alfa.layers["sensores"]), len(alfa.layers["saida"]), hidden=rede_p) # Criação da prole
+
+    mutacoes = 0
+    #-------- Definindo Sinapses com Mutação -------
+    sinapses_prole = alfa.conexoes
+    
+    if probabilidade(taxa_mutacao): # -- Mutação no peso --
+        temp = random.choice(sinapses_prole)
+        temp.peso += random.uniform(-3,3)
+
+        mutacoes+=1
+ 
+    if probabilidade(taxa_mutacao): # -- Mutação na ativação --
+        temp = random.choice(sinapses_prole)
+        temp.ativa = not temp.ativa
+        
+        mutacoes+=1
+    
+    if probabilidade(taxa_mutacao): # -- Mutação Criar/Reativar/Desativar sinapse --
+        recursive = True
+        while recursive: # Testa se a conexao será recursiva
+            entrada = random.choice(prole.layers["sensores"] + [i for i in prole.layers["ocultas"]]).ID
+            saida = random.choice([i for i in prole.layers["ocultas"]] + prole.layers["saida"]).ID
+            recursive = entrada == saida
+        
+        temp = Conexao(entrada,saida,peso = random.uniform(-3,3))
+
+        
+        if not conexao_existe(temp, prole.conexoes):
+            sinapses_prole.append(temp)
+            
+        mutacoes+=1
+
+
+    prole.conexoes = sinapses_prole # Coloca a nova lista de sinapses na prole
+
+    #------------------------------------
+
+    #-------- Mutacoes em Neuronios --------
+    # ---- Remove Neuronio com Sinapse ----
+    if probabilidade(taxa_mutacao) and len(prole.layers["ocultas"]) > 0: 
+        temp = random.choice(prole.layers["ocultas"])
+        prole.layers["ocultas"].remove(temp)
+        prole.neuronios.remove(temp)
+        
+        mutacoes+=1
+
+    # ---- Adição de Neuronio em Sinapse ----
+    if probabilidade(taxa_mutacao): 
+        temp = Neuronio(gerar_id(prole)) # Usa a funcao para calcular o id mais baixo disponivel para o neuronio
+        encaixar_neuronio(temp, prole)
+
+        mutacoes+=1
+
+    # ---- Alteração de Ativação ----
+    if probabilidade(taxa_mutacao):
+        temp = random.choice(prole.neuronios)
+        nova_ativ = random.randrange(len(temp.ativacoes))
+
+        while temp.ativ == nova_ativ: # Garante que a mutação achará um valor diferente
+            nova_ativ = random.randrange(len(temp.ativacoes))
+
+        temp.ativ = nova_ativ
+
+        mutacoes+=1
+    
+    # ---- Definindo Vieses com Mutação ----
+
+    vies_alfa = {v.ID:v.vies for v in prole.neuronios}
+
+
+    for neuronio in prole.neuronios:
+        neuronio.vies = vies_alfa[neuronio.ID]
+        
+        if probabilidade(taxa_mutacao): # -- Mutação --
+            neuronio.vies += random.uniform(-1,1) 
+            
+            mutacoes+=1
+
+
+    # ---- Mutando Vieses individuais ----
+    if probabilidade(taxa_mutacao): # -- Mutação --
+        temp = random.choice(prole.neuronios)
+        temp.vies = random.uniform(-1,1)
+        
+        mutacoes+=1
+
+    #------------------------------------
+        
+    # ---- Remoção de sinapses soltas ----
+    validacao_de_neuronios = [i.ID for i in prole.neuronios]
+    sinapses_inuteis = []
+    for i in prole.conexoes:
+        if i.entrada not in validacao_de_neuronios or i.saida not in validacao_de_neuronios:
+            sinapses_inuteis.append(i)
+    for i in sinapses_inuteis:
+        prole.conexoes.remove(i)
+
+    print(mutacoes)
+
+    return prole
 
 
 

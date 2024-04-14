@@ -27,26 +27,26 @@ for i in range(POP_INICIAL_HUNTER):
 while ROUND < MAX_ROUND:
 
     pygame.display.set_caption(f"Learning Seekers: {ROUND}")
-    TIMER = 1200
+
 
     for _ in range(MAX_FOOD):
         Pellet(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT),BRANCO,ESCALA,COMIDA) 
 
     #Loop
     rodando = True
-    while rodando and TIMER:
+    while rodando :
         if len(COMIDA) < MIN_FOOD:
             Pellet(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT),BRANCO,ESCALA,COMIDA) 
 
-
-        TIMER -= 1
 
         #comandos
         mouse = pygame.mouse.get_pressed()
         teclas = pygame.key.get_pressed()
         if teclas[pygame.K_RIGHT]:
+            rodando = False
             pass
         if teclas[pygame.K_LEFT]:
+            ROUND = MAX_ROUND
             pass
         if teclas[pygame.K_UP]:
             pass
@@ -84,11 +84,11 @@ while ROUND < MAX_ROUND:
 
     # --- Fim da Geração e Avaliação ---
     ROUND += 1
-    avaliacao = quick_sort_key([[i, i.estomago] for i in POPULACAO], 1)
+   
     COMIDA.empty()
     SEEKERS.empty()
     HUNTERS.empty()
-    POPULACAO = [Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA, 2, reproduzir(avaliacao[0][0].cerebro, avaliacao[random.randint(0,3)][0].cerebro), SEEKERS) for i in range (POP_INICIAL_SEEKER)]
+    #POPULACAO = [Seeker(random.randrange(WN_WIDTH), random.randrange(WN_HEIGHT), CIANO, ESCALA, 2, reproduzir(avaliacao[0][0].cerebro, avaliacao[random.randint(0,3)][0].cerebro), SEEKERS) for i in range (POP_INICIAL_SEEKER)]
 
 
     

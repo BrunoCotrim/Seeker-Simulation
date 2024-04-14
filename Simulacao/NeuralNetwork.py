@@ -51,6 +51,7 @@ class NN:
         self.output(softmax=True)
         #maior = self.softmax_out.index(max(self.softmax_out))
         return [1 if i  == max(self.softmax_out) else 0 for i in self.softmax_out]
+
     #--------- Gera sinapses aleatorias com pesos aleatorios ------
     def gerar_conexoes (self, conexoes=5): 
         sinapses = []

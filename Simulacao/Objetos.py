@@ -21,7 +21,7 @@ class Seeker(pygame.sprite.Sprite):
     seekercount = 0
     live = []
 
-    def __init__(self, x, y, cor, scale = 5, tipo = 2, cerebro = 0, *groups) -> None:
+    def __init__(self, x, y, cor, scale = 5, tipo = 2, cerebro = None, *groups) -> None:
         super().__init__(groups)
         #Variaveis principais
         self.scale = scale
